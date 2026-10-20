@@ -101,6 +101,21 @@ const supabase = createClient();
 const GRID_ROWS = 8;
 const GRID_COLUMNS = 12;
 
+const STRING_COLORS = [
+  { border: "border-rose-500", bg: "bg-rose-50", text: "text-rose-800" },
+  { border: "border-sky-500", bg: "bg-sky-50", text: "text-sky-800" },
+  { border: "border-emerald-500", bg: "bg-emerald-50", text: "text-emerald-800" },
+  { border: "border-violet-500", bg: "bg-violet-50", text: "text-violet-800" },
+  { border: "border-amber-500", bg: "bg-amber-50", text: "text-amber-800" },
+  { border: "border-cyan-500", bg: "bg-cyan-50", text: "text-cyan-800" },
+  { border: "border-fuchsia-500", bg: "bg-fuchsia-50", text: "text-fuchsia-800" },
+  { border: "border-orange-500", bg: "bg-orange-50", text: "text-orange-800" },
+];
+
+function getStringColor(stringNumber: number) {
+  return STRING_COLORS[(Math.max(1, stringNumber) - 1) % STRING_COLORS.length];
+}
+
 function emptyRoofSection(): RoofSection {
   return {
     id: crypto.randomUUID(),
@@ -149,7 +164,7 @@ export default function NewSystemDesignPage() {
   const [panelWattage, setPanelWattage] = useState<number | "">("");
 
   const [panelLength, setPanelLength] = useState<number | "">("");
-  const [panelWidth, setPanelWidth] = useState<number | "">("");
+  const [panelWidth, setPanelWidth] = useState<number | "">(1.2);
 
   const [roofSections, setRoofSections] = useState<RoofSection[]>([
     emptyRoofSection(),
@@ -661,39 +676,26 @@ export default function NewSystemDesignPage() {
     let joinerCount = 0;
 
     /*
-     * New Tech Power special rail rule:
-     *
-     * 5-panel portrait array
-     * 2 horizontal rails per panel
-     * Uses 3 x 5.15 m stock rails
-     * producing 2 rail runs with half-length extensions.
+     * Estimate stock rails from total rail length, allowing offcuts from
+     * one run to contribute to another. This is a material estimate, not
+     * a cut plan. Joiners are counted per continuous rail run.
      */
     if (
-      isPortrait &&
-      section.rail_orientation === "horizontal" &&
-      occupiedRows === 1 &&
-      occupiedColumns === 5 &&
-      railsPerPanel === 2
-    ) {
-      stockRailCount = 3;
-      joinerCount = 2;
-    } else if (
       stockLength > 0 &&
       railLength > 0 &&
       railCount > 0
     ) {
+      stockRailCount = Math.ceil(
+        (railLength * railCount) / stockLength
+      );
+
       const piecesPerContinuousRail = Math.ceil(
         railLength / stockLength
       );
 
-      stockRailCount =
-        piecesPerContinuousRail * railCount;
-
       joinerCount =
-        Math.max(
-          piecesPerContinuousRail - 1,
-          0
-        ) * railCount;
+        Math.max(piecesPerContinuousRail - 1, 0) *
+        railCount;
     }
 
     const usableRailLength = Math.max(
@@ -1595,69 +1597,7 @@ export default function NewSystemDesignPage() {
               />
             </Field>
 
-            <Field label="Inverter Model">
-              <input
-                value={inverterModel}
-                onChange={(event) =>
-                  setInverterModel(
-                    event.target.value
-                  )
-                }
-                placeholder="e.g. Sunsynk 5kW"
-                className="input"
-              />
-            </Field>
-
-            <Field label="Inverter Capacity (kW)">
-              <input
-                type="number"
-                min="0"
-                step="0.1"
-                value={inverterCapacity}
-                onChange={(event) =>
-                  setInverterCapacity(
-                    event.target.value === ""
-                      ? ""
-                      : Number(
-                          event.target.value
-                        )
-                  )
-                }
-                className="input"
-              />
-            </Field>
-
-            <Field label="Battery Model">
-              <input
-                value={batteryModel}
-                onChange={(event) =>
-                  setBatteryModel(
-                    event.target.value
-                  )
-                }
-                placeholder="e.g. Sunsynk 5.32kWh"
-                className="input"
-              />
-            </Field>
-
-            <Field label="Battery Capacity (kWh)">
-              <input
-                type="number"
-                min="0"
-                step="0.1"
-                value={batteryCapacity}
-                onChange={(event) =>
-                  setBatteryCapacity(
-                    event.target.value === ""
-                      ? ""
-                      : Number(
-                          event.target.value
-                        )
-                  )
-                }
-                className="input"
-              />
-            </Field>
+            {/* Inverter and battery sizing belong in the electrical design, not this PV layout and mounting-material designer. */}
           </div>
         </section>
 
@@ -2299,51 +2239,41 @@ export default function NewSystemDesignPage() {
 
                       const selected =
                         panel
-                          ? selectedPanels.includes(
-                              panel.id
-                            )
+                          ? selectedPanels.includes(panel.id)
                           : false;
+                      const assignedString = panel?.string_id
+                        ? activeSection.strings.find(
+                            (string) => string.id === panel.string_id
+                          )
+                        : undefined;
+                      const stringColor = assignedString
+                        ? getStringColor(assignedString.string_number)
+                        : null;
+                      const portrait = activeSection.panel_orientation === "portrait";
 
                       return (
                         <button
                           type="button"
                           key={`${row}-${column}`}
-                          onClick={() =>
-                            handlePanelClick(
-                              row,
-                              column
-                            )
-                          }
-                          className={`aspect-[2/1] rounded border text-[10px] transition ${
+                          onClick={() => handlePanelClick(row, column)}
+                          aria-label={panel
+                            ? `Panel ${panel.panel_number}${assignedString ? `, String ${assignedString.string_number}` : ""}`
+                            : `Add panel at row ${row}, column ${column}`}
+                          className={[
+                            "relative rounded-md border-2 text-[10px] transition-shadow",
+                            portrait ? "aspect-[1/2]" : "aspect-[2/1]",
                             panel
-                              ? selected
-                                ? "border-black bg-zinc-300 text-black"
-                                : "border-zinc-500 bg-zinc-200 text-zinc-900 hover:bg-zinc-300"
-                              : "border-zinc-200 bg-zinc-50 text-transparent hover:bg-zinc-100"
-                          }`}
+                              ? [stringColor?.border ?? "border-zinc-400", stringColor?.bg ?? "bg-zinc-100", stringColor?.text ?? "text-zinc-800", "hover:brightness-95"].join(" ")
+                              : "border-zinc-200 bg-zinc-50 text-transparent hover:border-zinc-400 hover:bg-zinc-100",
+                            selected ? "ring-2 ring-zinc-900 ring-offset-1" : "",
+                          ].join(" ")}
                         >
                           {panel && (
-                            <div className="flex h-full flex-col items-center justify-center">
-                              <span className="font-semibold">
-                                P
-                                {
-                                  panel.panel_number
-                                }
-                              </span>
-
-                              {panel.string_id && (
-                                <span className="text-[9px] text-zinc-500">
-                                  S
-                                  {
-                                    activeSection.strings.find(
-                                      (
-                                        string
-                                      ) =>
-                                        string.id ===
-                                        panel.string_id
-                                    )
-                                      ?.string_number
-                                  }
+                            <div className="flex h-full flex-col items-center justify-center gap-0.5 px-0.5">
+                              <span className="font-semibold">P{panel.panel_number}</span>
+                              {assignedString && (
+                                <span className={["rounded px-1 font-bold", stringColor?.text ?? ""].join(" ")}>
+                                  S{assignedString.string_number}
                                 </span>
                               )}
                             </div>
@@ -2416,11 +2346,14 @@ export default function NewSystemDesignPage() {
                               }
                               className="flex flex-col gap-4 p-4 lg:flex-row lg:items-center"
                             >
-                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-zinc-300 bg-zinc-50 text-sm font-semibold">
-                                S
-                                {
-                                  string.string_number
-                                }
+                              <div className="flex items-center gap-2">
+                                <span
+                                  aria-hidden="true"
+                                  className={["h-5 w-5 shrink-0 rounded-sm border-2", getStringColor(string.string_number).border, getStringColor(string.string_number).bg].join(" ")}
+                                />
+                                <div className={["flex h-10 w-10 shrink-0 items-center justify-center rounded-md border-2 text-sm font-semibold", getStringColor(string.string_number).border, getStringColor(string.string_number).bg, getStringColor(string.string_number).text].join(" ")}>
+                                  S{string.string_number}
+                                </div>
                               </div>
 
                               <div className="grid flex-1 gap-4 md:grid-cols-3">
