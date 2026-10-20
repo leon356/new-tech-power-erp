@@ -248,7 +248,23 @@ export default function BomOrdersPage() {
         { category: 'Major Components', component_name: 'Batteries', description: battery.trim() || null, quantity: Math.max(1, Number(batteryQuantity) || 1), unit: 'units', exclude_if_no_pv: false, ordered: false, received: false, notes: '', sort_order: 2 },
         { category: 'Major Components', component_name: 'Solar panels', description: panels.trim() || null, quantity: panelQuantity === '' ? null : Number(panelQuantity), unit: 'panels', exclude_if_no_pv: true, ordered: false, received: false, notes: '', sort_order: 3 },
       ]
-      setItems([...majorRows, ...templateRows])
+      setItems((current) => {
+        const previousMajor = new Map(
+          current
+            .filter((item) => item.category === 'Major Components')
+            .map((item) => [item.component_name, item])
+        )
+        const preservedMajorRows = majorRows.map((item) => {
+          const previous = previousMajor.get(item.component_name)
+          return previous
+            ? { ...item, ordered: previous.ordered, received: previous.received, notes: previous.notes }
+            : item
+        })
+        const existingMountingRows = current.filter(
+          (item) => item.category === 'Mounting Materials'
+        )
+        return [...preservedMajorRows, ...templateRows, ...existingMountingRows]
+      })
       setStatus('draft')
       setMessage('')
       setError('')
@@ -909,7 +925,38 @@ export default function BomOrdersPage() {
           <div className="space-y-2">
             <label className="block text-sm font-medium">
               Import mounting BOM from System Designer
-              <select className={inputClass} value={selectedDesignId} onChange={(e) => setSelectedDesignId(e.target.value)}>
+              <select
+                className={inputClass}
+                value={selectedDesignId}
+                onChange={(e) => {
+                  const id = e.target.value
+                  setSelectedDesignId(id)
+                  const design = systemDesigns.find((entry) => entry.id === id)
+                  if (!design) return
+                  if (design.job_id) setJobId(design.job_id)
+                  if (design.inverter_model) {
+                    setInverter(design.inverter_model)
+                    updateMajorComponent('Inverter', { description: design.inverter_model })
+                  }
+                  if (design.battery_model) {
+                    const batteryLabel = design.battery_capacity_kwh
+                      ? `${design.battery_model} — ${design.battery_capacity_kwh} kWh`
+                      : design.battery_model
+                    setBattery(batteryLabel)
+                    updateMajorComponent('Batteries', { description: batteryLabel })
+                  }
+                  if (design.panel_model || design.panel_wattage_w) {
+                    const panelLabel = [design.panel_model, design.panel_wattage_w ? `${design.panel_wattage_w} W` : ''].filter(Boolean).join(' — ')
+                    setPanels(panelLabel)
+                    updateMajorComponent('Solar panels', { description: panelLabel })
+                  }
+                  if (design.panel_quantity !== null) {
+                    setPanelQuantity(Number(design.panel_quantity))
+                    updateMajorComponent('Solar panels', { quantity: Number(design.panel_quantity) })
+                  }
+                  setPvIncluded(true)
+                }}
+              >
                 <option value="">Choose a saved system design…</option>
                 {systemDesigns.map((design) => (
                   <option key={design.id} value={design.id}>
