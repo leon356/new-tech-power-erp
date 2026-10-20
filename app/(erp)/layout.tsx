@@ -8,6 +8,7 @@ import {
   FileText,
   Sun,
   Boxes,
+  ClipboardList,
   ListTodo,
   FolderOpen,
   Settings,
@@ -23,6 +24,7 @@ const navigation = [
   { name: 'Quotes', href: '/quotes', icon: FileText },
   { name: 'System Designer', href: '/system-designer', icon: Sun },
   { name: 'BOM', href: '/bom', icon: Boxes },
+  { name: 'BOM Orders', href: '/bom/orders', icon: ClipboardList },
   { name: 'Inventory', href: '/inventory', icon: Boxes },
   { name: 'Tasks', href: '/tasks', icon: ListTodo },
   { name: 'Documents', href: '/documents', icon: FolderOpen },
@@ -81,20 +83,15 @@ export default function ErpLayout({
 
   return (
     <div className="min-h-screen bg-gray-100">
-
       {/* Sidebar */}
       <aside className="fixed inset-y-0 left-0 flex w-64 flex-col border-r bg-white">
-
         {/* Logo */}
         <div className="flex h-16 items-center border-b px-5">
           <div>
             <h1 className="text-lg font-bold text-gray-800">
               New Tech Power
             </h1>
-
-            <p className="text-xs text-gray-500">
-              ERP System
-            </p>
+            <p className="text-xs text-gray-500">ERP System</p>
           </div>
         </div>
 
@@ -118,15 +115,11 @@ export default function ErpLayout({
 
         {/* User account */}
         <div className="border-t p-3">
-
           <div className="mb-2 rounded-lg px-3 py-2">
             <p className="truncate text-sm font-medium text-gray-800">
               {userName}
             </p>
-
-            <p className="text-xs capitalize text-gray-600">
-              {userRole}
-            </p>
+            <p className="text-xs capitalize text-gray-600">{userRole}</p>
           </div>
 
           <button
@@ -136,16 +129,11 @@ export default function ErpLayout({
             <LogOut size={19} />
             Sign out
           </button>
-
         </div>
-
       </aside>
 
       {/* Main content */}
-      <main className="ml-64 p-8">
-        {children}
-      </main>
-
+      <main className="ml-64 p-8">{children}</main>
     </div>
   )
 }
