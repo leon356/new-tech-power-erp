@@ -1066,14 +1066,13 @@ export default function BomOrdersPage() {
               type="number"
               min={0}
               value={panelQuantity}
-              onChange={(e) =>
+              onChange={(e) => {
+                const value = e.target.value
                 setPanelQuantity(
-                  e.target.value === ''
-                    ? ''
-                    : Math.max(0, Number(e.target.value))
+                  value === '' ? '' : Math.max(0, Number(value))
                 )
                 updateMajorComponent('Solar panels', {
-                  quantity: e.target.value === '' ? null : Math.max(0, Number(e.target.value)),
+                  quantity: value === '' ? null : Math.max(0, Number(value)),
                 })
               }
               placeholder="Enter quantity"
