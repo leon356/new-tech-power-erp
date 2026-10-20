@@ -4,6 +4,7 @@ import SitePhotos from './site-photos'
 import StatusSelector from './status-selector'
 import { ArrowLeft, CalendarDays, MapPin, User, Pencil } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import JobMaterials from './job-materials'
 
 const statusLabels: Record<string, string> = {
     job_created: 'Job Created',
@@ -236,6 +237,9 @@ export default async function JobDetailsPage({
                     {/* Site Photos */}
                     <SitePhotos jobId={job.id} />
 
+                    {/* Job Materials */}
+                    <JobMaterials jobId={job.id} />
+                    
                     {/* Description */}
                     <div className="rounded-xl border bg-white p-6">
 
