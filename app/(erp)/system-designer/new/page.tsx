@@ -2226,10 +2226,10 @@ export default function NewSystemDesignPage() {
                           length: displayRows * displayColumns,
                         }).map((_, index) => {
                           const row = portraitLayout
-                            ? (index % displayRows) + 1
+                            ? (index % displayColumns) + 1
                             : Math.floor(index / displayColumns) + 1;
                           const column = portraitLayout
-                            ? Math.floor(index / displayRows) + 1
+                            ? Math.floor(index / displayColumns) + 1
                             : (index % displayColumns) + 1;
 
                       const panel =
