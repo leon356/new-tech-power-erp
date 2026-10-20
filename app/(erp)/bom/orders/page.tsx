@@ -1074,7 +1074,7 @@ export default function BomOrdersPage() {
                 updateMajorComponent('Solar panels', {
                   quantity: value === '' ? null : Math.max(0, Number(value)),
                 })
-              }
+              }}
               placeholder="Enter quantity"
             />
           </label>
