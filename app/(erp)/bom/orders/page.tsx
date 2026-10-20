@@ -43,6 +43,20 @@ type Job = {
   title: string
 }
 
+type SystemDesign = {
+  id: string
+  design_name: string | null
+  job_id: string | null
+  inverter_model: string | null
+  battery_model: string | null
+  battery_capacity_kwh: number | null
+  panel_model: string | null
+  panel_wattage_w: number | null
+  panel_quantity: number | null
+  total_pv_kw: number | null
+  created_at: string
+}
+
 type SavedBom = {
   id: string
   template_name: string
@@ -60,11 +74,13 @@ const buttonClass =
   'rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50'
 
 const categories = [
+  'Major Components',
   'Essential Load and Change Over',
   'Battery sundries',
   'Solar Combiner Box',
   'Conduit and Accessories',
   'Electrical Sundries',
+  'Mounting Materials',
   'Additional Items',
 ]
 
@@ -77,6 +93,9 @@ export default function BomOrdersPage() {
   const [, setTemplateItems] = useState<TemplateItem[]>([])
   const [items, setItems] = useState<BomItem[]>([])
   const [jobs, setJobs] = useState<Job[]>([])
+  const [systemDesigns, setSystemDesigns] = useState<SystemDesign[]>([])
+  const [selectedDesignId, setSelectedDesignId] = useState('')
+  const [importingMounting, setImportingMounting] = useState(false)
   const [savedBoms, setSavedBoms] = useState<SavedBom[]>([])
   const [selectedSavedId, setSelectedSavedId] = useState('')
   const [editingBomId, setEditingBomId] = useState<string | null>(null)
@@ -123,7 +142,7 @@ export default function BomOrdersPage() {
       setLoading(true)
       setError('')
 
-      const [templateResult, jobResult] = await Promise.all([
+      const [templateResult, jobResult, designResult] = await Promise.all([
         supabase
           .from('system_bom_templates')
           .select('id, name, system_size_kw, description')
@@ -132,6 +151,10 @@ export default function BomOrdersPage() {
         supabase
           .from('jobs')
           .select('id, job_number, title')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('system_designs')
+          .select('id, design_name, job_id, inverter_model, battery_model, battery_capacity_kwh, panel_model, panel_wattage_w, panel_quantity, total_pv_kw, created_at')
           .order('created_at', { ascending: false }),
       ])
 
@@ -152,6 +175,16 @@ export default function BomOrdersPage() {
         )
       } else {
         setJobs((jobResult.data ?? []) as Job[])
+      }
+
+      if (designResult.error) {
+        setError((current) =>
+          current
+            ? `${current}\nCould not load system designs: ${designResult.error.message}`
+            : `Could not load system designs: ${designResult.error.message}`
+        )
+      } else {
+        setSystemDesigns((designResult.data ?? []) as SystemDesign[])
       }
 
       const { data: bomData, error: bomError } = await supabase
@@ -198,20 +231,24 @@ export default function BomOrdersPage() {
 
       const rows = (data ?? []) as TemplateItem[]
       setTemplateItems(rows)
-      setItems(
-        rows.map((item) => ({
-          category: item.category,
-          component_name: item.component_name,
-          description: item.description,
-          quantity: item.quantity === null ? null : Number(item.quantity),
-          unit: item.unit,
-          exclude_if_no_pv: item.exclude_if_no_pv,
-          ordered: false,
-          received: false,
-          notes: '',
-          sort_order: item.sort_order,
-        }))
-      )
+      const templateRows: BomItem[] = rows.map((item) => ({
+        category: item.category,
+        component_name: item.component_name,
+        description: item.description,
+        quantity: item.quantity === null ? null : Number(item.quantity),
+        unit: item.unit,
+        exclude_if_no_pv: item.exclude_if_no_pv,
+        ordered: false,
+        received: false,
+        notes: '',
+        sort_order: item.sort_order + 3,
+      }))
+      const majorRows: BomItem[] = [
+        { category: 'Major Components', component_name: 'Inverter', description: inverter.trim() || null, quantity: 1, unit: 'unit', exclude_if_no_pv: false, ordered: false, received: false, notes: '', sort_order: 1 },
+        { category: 'Major Components', component_name: 'Batteries', description: battery.trim() || null, quantity: Math.max(1, Number(batteryQuantity) || 1), unit: 'units', exclude_if_no_pv: false, ordered: false, received: false, notes: '', sort_order: 2 },
+        { category: 'Major Components', component_name: 'Solar panels', description: panels.trim() || null, quantity: panelQuantity === '' ? null : Number(panelQuantity), unit: 'panels', exclude_if_no_pv: true, ordered: false, received: false, notes: '', sort_order: 3 },
+      ]
+      setItems([...majorRows, ...templateRows])
       setStatus('draft')
       setMessage('')
       setError('')
@@ -219,6 +256,14 @@ export default function BomOrdersPage() {
 
     void loadTemplateItems()
   }, [templateId, supabase, editingBomId])
+
+  function updateMajorComponent(componentName: string, patch: Partial<BomItem>) {
+    setItems((current) => current.map((item) =>
+      item.category === 'Major Components' && item.component_name === componentName
+        ? { ...item, ...patch }
+        : item
+    ))
+  }
 
   function updateItem(index: number, patch: Partial<BomItem>) {
     setItems((current) =>
@@ -249,6 +294,7 @@ export default function BomOrdersPage() {
   }
 
   function resetForm() {
+    setSelectedDesignId('')
     setEditingBomId(null)
     setSelectedSavedId('')
     setJobId('')
@@ -333,6 +379,49 @@ export default function BomOrdersPage() {
 
     setTemplateId(bom.template_id ?? '')
     setLoading(false)
+  }
+
+  async function importMountingBom() {
+    if (!selectedDesignId) {
+      setError('Select a saved System Designer design first.')
+      return
+    }
+    setImportingMounting(true)
+    setError('')
+    setMessage('')
+    const { data, error: mountingError } = await supabase
+      .from('system_design_bom')
+      .select('component_name, description, quantity, unit')
+      .eq('system_design_id', selectedDesignId)
+      .order('component_name')
+    if (mountingError) {
+      setError(`Could not load the design mounting BOM: ${mountingError.message}`)
+      setImportingMounting(false)
+      return
+    }
+    if (!data || data.length === 0) {
+      setError('This design has no saved mounting BOM. Check that its roof sections have panels and mounting templates assigned, then save the design again.')
+      setImportingMounting(false)
+      return
+    }
+    const grouped = new Map<string, { component_name: string; description: string | null; quantity: number; unit: string | null }>()
+    for (const row of data) {
+      const name = String(row.component_name ?? '').trim()
+      const description = row.description ? String(row.description) : null
+      const unit = row.unit ? String(row.unit) : null
+      const key = [name, description ?? '', unit ?? ''].join('|')
+      const existing = grouped.get(key)
+      if (existing) existing.quantity += Number(row.quantity ?? 0)
+      else grouped.set(key, { component_name: name, description, quantity: Number(row.quantity ?? 0), unit })
+    }
+    const mountingItems: BomItem[] = Array.from(grouped.values()).map((row, index) => ({
+      category: 'Mounting Materials', component_name: row.component_name, description: row.description,
+      quantity: row.quantity, unit: row.unit, exclude_if_no_pv: false, ordered: false, received: false,
+      notes: '', sort_order: index + 1,
+    }))
+    setItems((current) => [...current.filter((item) => item.category !== 'Mounting Materials'), ...mountingItems])
+    setMessage(`Imported ${mountingItems.length} mounting material line(s). Existing mounting lines were replaced; save the order to keep this snapshot.`)
+    setImportingMounting(false)
   }
 
   async function saveBom() {
@@ -817,6 +906,24 @@ export default function BomOrdersPage() {
             </select>
           </label>
 
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">
+              Import mounting BOM from System Designer
+              <select className={inputClass} value={selectedDesignId} onChange={(e) => setSelectedDesignId(e.target.value)}>
+                <option value="">Choose a saved system design…</option>
+                {systemDesigns.map((design) => (
+                  <option key={design.id} value={design.id}>
+                    {(design.design_name || 'Unnamed design') + ` — ${design.panel_quantity ?? 0} panels${design.total_pv_kw ? ` / ${design.total_pv_kw} kWp` : ''}`}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button type="button" className={buttonClass} onClick={() => void importMountingBom()} disabled={!selectedDesignId || importingMounting || loading}>
+              {importingMounting ? 'Importing mounting BOM…' : 'Import / replace mounting materials'}
+            </button>
+            <p className="text-xs text-gray-500">Imports saved quantities from System Designer. Re-importing replaces only the Mounting Materials section.</p>
+          </div>
+
           <label className="text-sm font-medium">
             Client name *
             <input
@@ -853,7 +960,11 @@ export default function BomOrdersPage() {
             <input
               className={inputClass}
               value={inverter}
-              onChange={(e) => setInverter(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value
+                setInverter(value)
+                updateMajorComponent('Inverter', { description: value.trim() || null })
+              }}
               placeholder="Make, model and size"
             />
           </label>
@@ -863,7 +974,11 @@ export default function BomOrdersPage() {
             <input
               className={inputClass}
               value={battery}
-              onChange={(e) => setBattery(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value
+                setBattery(value)
+                updateMajorComponent('Batteries', { description: value.trim() || null })
+              }}
               placeholder="Battery model"
             />
           </label>
@@ -875,9 +990,11 @@ export default function BomOrdersPage() {
               type="number"
               min={1}
               value={batteryQuantity}
-              onChange={(e) =>
-                setBatteryQuantity(Math.max(1, Number(e.target.value) || 1))
-              }
+              onChange={(e) => {
+                const quantity = Math.max(1, Number(e.target.value) || 1)
+                setBatteryQuantity(quantity)
+                updateMajorComponent('Batteries', { quantity })
+              }}
             />
           </label>
 
@@ -886,7 +1003,11 @@ export default function BomOrdersPage() {
             <input
               className={inputClass}
               value={panels}
-              onChange={(e) => setPanels(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value
+                setPanels(value)
+                updateMajorComponent('Solar panels', { description: value.trim() || null })
+              }}
               placeholder="Panel make, model or wattage"
             />
           </label>
@@ -904,6 +1025,9 @@ export default function BomOrdersPage() {
                     ? ''
                     : Math.max(0, Number(e.target.value))
                 )
+                updateMajorComponent('Solar panels', {
+                  quantity: e.target.value === '' ? null : Math.max(0, Number(e.target.value)),
+                })
               }
               placeholder="Enter quantity"
             />
