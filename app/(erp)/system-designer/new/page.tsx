@@ -2206,27 +2206,31 @@ export default function NewSystemDesignPage() {
                 </div>
 
                 <div className="overflow-x-auto p-5">
-                  <div
-                    className="mx-auto grid min-w-[720px] max-w-5xl gap-1"
-                    style={{
-                      gridTemplateColumns: `repeat(${GRID_COLUMNS}, minmax(0, 1fr))`,
-                    }}
-                  >
-                    {Array.from({
-                      length:
-                        GRID_ROWS *
-                        GRID_COLUMNS,
-                    }).map((_, index) => {
-                      const row =
-                        Math.floor(
-                          index /
-                            GRID_COLUMNS
-                        ) + 1;
+                  {/*
+                    Rotate the clickable grid axes for portrait layouts as
+                    well as changing each panel tile's aspect ratio.
+                  */}
+                  {(() => {
+                    const portraitLayout = activeSection.panel_orientation === "portrait";
+                    const displayRows = portraitLayout ? GRID_COLUMNS : GRID_ROWS;
+                    const displayColumns = portraitLayout ? GRID_ROWS : GRID_COLUMNS;
 
-                      const column =
-                        (index %
-                          GRID_COLUMNS) +
-                        1;
+                    return (
+                      <div
+                        className="mx-auto grid min-w-[720px] max-w-5xl gap-1"
+                        style={{
+                          gridTemplateColumns: `repeat(${displayColumns}, minmax(0, 1fr))`,
+                        }}
+                      >
+                        {Array.from({
+                          length: displayRows * displayColumns,
+                        }).map((_, index) => {
+                          const row = portraitLayout
+                            ? (index % displayRows) + 1
+                            : Math.floor(index / displayColumns) + 1;
+                          const column = portraitLayout
+                            ? Math.floor(index / displayRows) + 1
+                            : (index % displayColumns) + 1;
 
                       const panel =
                         activeSection.panels.find(
@@ -2279,9 +2283,11 @@ export default function NewSystemDesignPage() {
                             </div>
                           )}
                         </button>
-                      );
-                    })}
-                  </div>
+                        );
+                        })}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 
