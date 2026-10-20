@@ -1002,6 +1002,8 @@ export default function BomOrdersPage() {
                         />
                     </label>
 
+                    </div>
+
                     <label className="text-sm font-medium">
                         Inverter
                         <input
