@@ -6,611 +6,611 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 type Template = {
-  id: string
-  name: string
-  system_size_kw: number
-  description: string | null
+    id: string
+    name: string
+    system_size_kw: number
+    description: string | null
 }
 
 type TemplateItem = {
-  id: string
-  category: string
-  component_name: string
-  description: string | null
-  quantity: number | null
-  unit: string | null
-  exclude_if_no_pv: boolean
-  sort_order: number
+    id: string
+    category: string
+    component_name: string
+    description: string | null
+    quantity: number | null
+    unit: string | null
+    exclude_if_no_pv: boolean
+    sort_order: number
 }
 
 type BomItem = {
-  id?: string
-  category: string
-  component_name: string
-  description: string | null
-  quantity: number | null
-  unit: string | null
-  exclude_if_no_pv: boolean
-  ordered: boolean
-  received: boolean
-  notes: string
-  sort_order: number
+    id?: string
+    category: string
+    component_name: string
+    description: string | null
+    quantity: number | null
+    unit: string | null
+    exclude_if_no_pv: boolean
+    ordered: boolean
+    received: boolean
+    notes: string
+    sort_order: number
 }
 
 type Job = {
-  id: string
-  job_number: string
-  title: string
+    id: string
+    job_number: string
+    title: string
 }
 
 type SystemDesign = {
-  id: string
-  design_name: string | null
-  job_id: string | null
-  inverter_model: string | null
-  battery_model: string | null
-  battery_capacity_kwh: number | null
-  panel_model: string | null
-  panel_wattage_w: number | null
-  panel_quantity: number | null
-  total_pv_kw: number | null
-  created_at: string
+    id: string
+    design_name: string | null
+    job_id: string | null
+    inverter_model: string | null
+    battery_model: string | null
+    battery_capacity_kwh: number | null
+    panel_model: string | null
+    panel_wattage_w: number | null
+    panel_quantity: number | null
+    total_pv_kw: number | null
+    created_at: string
 }
 
 type SavedBom = {
-  id: string
-  template_name: string
-  system_size_kw: number
-  client_name: string | null
-  status: string
-  created_at: string
-  job_id: string | null
+    id: string
+    template_name: string
+    system_size_kw: number
+    client_name: string | null
+    status: string
+    created_at: string
+    job_id: string | null
 }
 
 const inputClass =
-  'mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900'
+    'mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900'
 
 const buttonClass =
-  'rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50'
+    'rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50'
 
 const categories = [
-  'Major Components',
-  'Essential Load and Change Over',
-  'Battery sundries',
-  'Solar Combiner Box',
-  'Conduit and Accessories',
-  'Electrical Sundries',
-  'Mounting Materials',
-  'Additional Items',
+    'Major Components',
+    'Essential Load and Change Over',
+    'Battery sundries',
+    'Solar Combiner Box',
+    'Conduit and Accessories',
+    'Electrical Sundries',
+    'Mounting Materials',
+    'Additional Items',
 ]
 
 export default function BomOrdersPage() {
-  const supabase = useMemo(() => createClient(), [])
-  const router = useRouter()
+    const supabase = useMemo(() => createClient(), [])
+    const router = useRouter()
 
-  const [templates, setTemplates] = useState<Template[]>([])
-  const [templateId, setTemplateId] = useState('')
-  const [, setTemplateItems] = useState<TemplateItem[]>([])
-  const [items, setItems] = useState<BomItem[]>([])
-  const [jobs, setJobs] = useState<Job[]>([])
-  const [systemDesigns, setSystemDesigns] = useState<SystemDesign[]>([])
-  const [selectedDesignId, setSelectedDesignId] = useState('')
-  const [importingMounting, setImportingMounting] = useState(false)
-  const [savedBoms, setSavedBoms] = useState<SavedBom[]>([])
-  const [selectedSavedId, setSelectedSavedId] = useState('')
-  const [editingBomId, setEditingBomId] = useState<string | null>(null)
+    const [templates, setTemplates] = useState<Template[]>([])
+    const [templateId, setTemplateId] = useState('')
+    const [, setTemplateItems] = useState<TemplateItem[]>([])
+    const [items, setItems] = useState<BomItem[]>([])
+    const [jobs, setJobs] = useState<Job[]>([])
+    const [systemDesigns, setSystemDesigns] = useState<SystemDesign[]>([])
+    const [selectedDesignId, setSelectedDesignId] = useState('')
+    const [importingMounting, setImportingMounting] = useState(false)
+    const [savedBoms, setSavedBoms] = useState<SavedBom[]>([])
+    const [selectedSavedId, setSelectedSavedId] = useState('')
+    const [editingBomId, setEditingBomId] = useState<string | null>(null)
 
-  const [jobId, setJobId] = useState('')
-  const [clientName, setClientName] = useState('')
-  const [address, setAddress] = useState('')
-  const [contactNumber, setContactNumber] = useState('')
-  const [inverter, setInverter] = useState('')
-  const [battery, setBattery] = useState('')
-  const [batteryQuantity, setBatteryQuantity] = useState(1)
-  const [panels, setPanels] = useState('')
-  const [panelQuantity, setPanelQuantity] = useState<number | ''>('')
-  const [pvIncluded, setPvIncluded] = useState(true)
-  const [notes, setNotes] = useState('')
-  const [status, setStatus] = useState('draft')
+    const [jobId, setJobId] = useState('')
+    const [clientName, setClientName] = useState('')
+    const [address, setAddress] = useState('')
+    const [contactNumber, setContactNumber] = useState('')
+    const [inverter, setInverter] = useState('')
+    const [battery, setBattery] = useState('')
+    const [batteryQuantity, setBatteryQuantity] = useState(1)
+    const [panels, setPanels] = useState('')
+    const [panelQuantity, setPanelQuantity] = useState<number | ''>('')
+    const [pvIncluded, setPvIncluded] = useState(true)
+    const [notes, setNotes] = useState('')
+    const [status, setStatus] = useState('draft')
 
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
-  const [message, setMessage] = useState('')
+    const [loading, setLoading] = useState(true)
+    const [saving, setSaving] = useState(false)
+    const [error, setError] = useState('')
+    const [message, setMessage] = useState('')
 
-  const selectedTemplate = templates.find((t) => t.id === templateId)
+    const selectedTemplate = templates.find((t) => t.id === templateId)
 
-  const loadSavedBoms = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('job_boms')
-      .select(
-        'id, template_name, system_size_kw, client_name, status, created_at, job_id'
-      )
-      .order('created_at', { ascending: false })
-      .limit(50)
+    const loadSavedBoms = useCallback(async () => {
+        const { data, error } = await supabase
+            .from('job_boms')
+            .select(
+                'id, template_name, system_size_kw, client_name, status, created_at, job_id'
+            )
+            .order('created_at', { ascending: false })
+            .limit(50)
 
-    if (error) {
-      setError(`Could not load saved BOMs: ${error.message}`)
-      return
+        if (error) {
+            setError(`Could not load saved BOMs: ${error.message}`)
+            return
+        }
+
+        setSavedBoms((data ?? []) as SavedBom[])
+    }, [supabase])
+
+    useEffect(() => {
+        async function loadInitialData() {
+            setLoading(true)
+            setError('')
+
+            const [templateResult, jobResult, designResult] = await Promise.all([
+                supabase
+                    .from('system_bom_templates')
+                    .select('id, name, system_size_kw, description')
+                    .eq('active', true)
+                    .order('system_size_kw'),
+                supabase
+                    .from('jobs')
+                    .select('id, job_number, title')
+                    .order('created_at', { ascending: false }),
+                supabase
+                    .from('system_designs')
+                    .select('id, design_name, job_id, inverter_model, battery_model, battery_capacity_kwh, panel_model, panel_wattage_w, panel_quantity, total_pv_kw, created_at')
+                    .order('created_at', { ascending: false }),
+            ])
+
+            if (templateResult.error) {
+                setError(`Could not load templates: ${templateResult.error.message}`)
+            } else {
+                const rows = (templateResult.data ?? []) as Template[]
+                setTemplates(rows)
+                const fiveKw = rows.find((t) => Number(t.system_size_kw) === 5)
+                if (fiveKw) setTemplateId(fiveKw.id)
+            }
+
+            if (jobResult.error) {
+                setError((current) =>
+                    current
+                        ? `${current}\nCould not load jobs: ${jobResult.error.message}`
+                        : `Could not load jobs: ${jobResult.error.message}`
+                )
+            } else {
+                setJobs((jobResult.data ?? []) as Job[])
+            }
+
+            if (designResult.error) {
+                setError((current) =>
+                    current
+                        ? `${current}\nCould not load system designs: ${designResult.error.message}`
+                        : `Could not load system designs: ${designResult.error.message}`
+                )
+            } else {
+                setSystemDesigns((designResult.data ?? []) as SystemDesign[])
+            }
+
+            const { data: bomData, error: bomError } = await supabase
+                .from('job_boms')
+                .select(
+                    'id, template_name, system_size_kw, client_name, status, created_at, job_id'
+                )
+                .order('created_at', { ascending: false })
+                .limit(50)
+
+            if (bomError) {
+                setError((current) =>
+                    current
+                        ? `${current}\nCould not load saved BOMs: ${bomError.message}`
+                        : `Could not load saved BOMs: ${bomError.message}`
+                )
+            } else {
+                setSavedBoms((bomData ?? []) as SavedBom[])
+            }
+
+            setLoading(false)
+        }
+
+        void loadInitialData()
+    }, [supabase])
+
+    useEffect(() => {
+        async function loadTemplateItems() {
+            if (!templateId || editingBomId) return
+
+            const { data, error } = await supabase
+                .from('system_bom_template_items')
+                .select(
+                    'id, category, component_name, description, quantity, unit, exclude_if_no_pv, sort_order'
+                )
+                .eq('template_id', templateId)
+                .eq('active', true)
+                .order('sort_order')
+
+            if (error) {
+                setError(`Could not load template items: ${error.message}`)
+                return
+            }
+
+            const rows = (data ?? []) as TemplateItem[]
+            setTemplateItems(rows)
+            const templateRows: BomItem[] = rows.map((item) => ({
+                category: item.category,
+                component_name: item.component_name,
+                description: item.description,
+                quantity: item.quantity === null ? null : Number(item.quantity),
+                unit: item.unit,
+                exclude_if_no_pv: item.exclude_if_no_pv,
+                ordered: false,
+                received: false,
+                notes: '',
+                sort_order: item.sort_order + 3,
+            }))
+            const majorRows: BomItem[] = [
+                { category: 'Major Components', component_name: 'Inverter', description: inverter.trim() || null, quantity: 1, unit: 'unit', exclude_if_no_pv: false, ordered: false, received: false, notes: '', sort_order: 1 },
+                { category: 'Major Components', component_name: 'Batteries', description: battery.trim() || null, quantity: Math.max(1, Number(batteryQuantity) || 1), unit: 'units', exclude_if_no_pv: false, ordered: false, received: false, notes: '', sort_order: 2 },
+                { category: 'Major Components', component_name: 'Solar panels', description: panels.trim() || null, quantity: panelQuantity === '' ? null : Number(panelQuantity), unit: 'panels', exclude_if_no_pv: true, ordered: false, received: false, notes: '', sort_order: 3 },
+            ]
+            setItems((current) => {
+                const previousMajor = new Map(
+                    current
+                        .filter((item) => item.category === 'Major Components')
+                        .map((item) => [item.component_name, item])
+                )
+                const preservedMajorRows = majorRows.map((item) => {
+                    const previous = previousMajor.get(item.component_name)
+                    return previous
+                        ? { ...item, ordered: previous.ordered, received: previous.received, notes: previous.notes }
+                        : item
+                })
+                const existingMountingRows = current.filter(
+                    (item) => item.category === 'Mounting Materials'
+                )
+                return [...preservedMajorRows, ...templateRows, ...existingMountingRows]
+            })
+            setStatus('draft')
+            setMessage('')
+            setError('')
+        }
+
+        void loadTemplateItems()
+    }, [templateId, supabase, editingBomId])
+
+    function updateMajorComponent(componentName: string, patch: Partial<BomItem>) {
+        setItems((current) => current.map((item) =>
+            item.category === 'Major Components' && item.component_name === componentName
+                ? { ...item, ...patch }
+                : item
+        ))
     }
 
-    setSavedBoms((data ?? []) as SavedBom[])
-  }, [supabase])
-
-  useEffect(() => {
-    async function loadInitialData() {
-      setLoading(true)
-      setError('')
-
-      const [templateResult, jobResult, designResult] = await Promise.all([
-        supabase
-          .from('system_bom_templates')
-          .select('id, name, system_size_kw, description')
-          .eq('active', true)
-          .order('system_size_kw'),
-        supabase
-          .from('jobs')
-          .select('id, job_number, title')
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('system_designs')
-          .select('id, design_name, job_id, inverter_model, battery_model, battery_capacity_kwh, panel_model, panel_wattage_w, panel_quantity, total_pv_kw, created_at')
-          .order('created_at', { ascending: false }),
-      ])
-
-      if (templateResult.error) {
-        setError(`Could not load templates: ${templateResult.error.message}`)
-      } else {
-        const rows = (templateResult.data ?? []) as Template[]
-        setTemplates(rows)
-        const fiveKw = rows.find((t) => Number(t.system_size_kw) === 5)
-        if (fiveKw) setTemplateId(fiveKw.id)
-      }
-
-      if (jobResult.error) {
-        setError((current) =>
-          current
-            ? `${current}\nCould not load jobs: ${jobResult.error.message}`
-            : `Could not load jobs: ${jobResult.error.message}`
+    function updateItem(index: number, patch: Partial<BomItem>) {
+        setItems((current) =>
+            current.map((item, i) => (i === index ? { ...item, ...patch } : item))
         )
-      } else {
-        setJobs((jobResult.data ?? []) as Job[])
-      }
+    }
 
-      if (designResult.error) {
-        setError((current) =>
-          current
-            ? `${current}\nCould not load system designs: ${designResult.error.message}`
-            : `Could not load system designs: ${designResult.error.message}`
+    function addItem() {
+        setItems((current) => [
+            ...current,
+            {
+                category: 'Additional Items',
+                component_name: '',
+                description: null,
+                quantity: null,
+                unit: null,
+                exclude_if_no_pv: false,
+                ordered: false,
+                received: false,
+                notes: '',
+                sort_order: current.length + 1,
+            },
+        ])
+    }
+
+    function removeItem(index: number) {
+        setItems((current) => current.filter((_, i) => i !== index))
+    }
+
+    function resetForm() {
+        setSelectedDesignId('')
+        setEditingBomId(null)
+        setSelectedSavedId('')
+        setJobId('')
+        setClientName('')
+        setAddress('')
+        setContactNumber('')
+        setInverter('')
+        setBattery('')
+        setBatteryQuantity(1)
+        setPanels('')
+        setPanelQuantity('')
+        setPvIncluded(true)
+        setNotes('')
+        setStatus('draft')
+        setMessage('')
+        setError('')
+        router.refresh()
+    }
+
+    async function loadSavedBom(id: string) {
+        if (!id) return
+        setError('')
+        setMessage('')
+        setLoading(true)
+
+        const { data: bom, error: bomError } = await supabase
+            .from('job_boms')
+            .select('*')
+            .eq('id', id)
+            .single()
+
+        if (bomError || !bom) {
+            setError(`Could not open BOM: ${bomError?.message ?? 'Not found'}`)
+            setLoading(false)
+            return
+        }
+
+        const { data: rows, error: itemsError } = await supabase
+            .from('job_bom_items')
+            .select('*')
+            .eq('job_bom_id', id)
+            .order('sort_order')
+
+        if (itemsError) {
+            setError(`Could not load saved items: ${itemsError.message}`)
+            setLoading(false)
+            return
+        }
+
+        setEditingBomId(id)
+        setSelectedSavedId(id)
+        setJobId(bom.job_id ?? '')
+        setClientName(bom.client_name ?? '')
+        setAddress(bom.address ?? '')
+        setContactNumber(bom.contact_number ?? '')
+        setInverter(bom.inverter ?? '')
+        setBattery(bom.battery ?? '')
+        setBatteryQuantity(Number(bom.battery_quantity ?? 1))
+        setPanels(bom.panels ?? '')
+        setPanelQuantity(
+            bom.panel_quantity === null ? '' : Number(bom.panel_quantity)
         )
-      } else {
-        setSystemDesigns((designResult.data ?? []) as SystemDesign[])
-      }
+        setPvIncluded(Boolean(bom.pv_included))
+        setNotes(bom.notes ?? '')
+        setStatus(bom.status ?? 'draft')
 
-      const { data: bomData, error: bomError } = await supabase
-        .from('job_boms')
-        .select(
-          'id, template_name, system_size_kw, client_name, status, created_at, job_id'
+        setItems(
+            (rows ?? []).map((row) => ({
+                id: row.id,
+                category: row.category,
+                component_name: row.component_name,
+                description: row.description,
+                quantity: row.quantity === null ? null : Number(row.quantity),
+                unit: row.unit,
+                exclude_if_no_pv: Boolean(row.exclude_if_no_pv),
+                ordered: Boolean(row.ordered),
+                received: Boolean(row.received),
+                notes: row.notes ?? '',
+                sort_order: Number(row.sort_order ?? 0),
+            }))
         )
-        .order('created_at', { ascending: false })
-        .limit(50)
 
-      if (bomError) {
-        setError((current) =>
-          current
-            ? `${current}\nCould not load saved BOMs: ${bomError.message}`
-            : `Could not load saved BOMs: ${bomError.message}`
+        setTemplateId(bom.template_id ?? '')
+        setLoading(false)
+    }
+
+    async function importMountingBom() {
+        if (!selectedDesignId) {
+            setError('Select a saved System Designer design first.')
+            return
+        }
+        setImportingMounting(true)
+        setError('')
+        setMessage('')
+        const { data, error: mountingError } = await supabase
+            .from('system_design_bom')
+            .select('component_name, description, quantity, unit')
+            .eq('system_design_id', selectedDesignId)
+            .order('component_name')
+        if (mountingError) {
+            setError(`Could not load the design mounting BOM: ${mountingError.message}`)
+            setImportingMounting(false)
+            return
+        }
+        if (!data || data.length === 0) {
+            setError('This design has no saved mounting BOM. Check that its roof sections have panels and mounting templates assigned, then save the design again.')
+            setImportingMounting(false)
+            return
+        }
+        const grouped = new Map<string, { component_name: string; description: string | null; quantity: number; unit: string | null }>()
+        for (const row of data) {
+            const name = String(row.component_name ?? '').trim()
+            const description = row.description ? String(row.description) : null
+            const unit = row.unit ? String(row.unit) : null
+            const key = [name, description ?? '', unit ?? ''].join('|')
+            const existing = grouped.get(key)
+            if (existing) existing.quantity += Number(row.quantity ?? 0)
+            else grouped.set(key, { component_name: name, description, quantity: Number(row.quantity ?? 0), unit })
+        }
+        const mountingItems: BomItem[] = Array.from(grouped.values()).map((row, index) => ({
+            category: 'Mounting Materials', component_name: row.component_name, description: row.description,
+            quantity: row.quantity, unit: row.unit, exclude_if_no_pv: false, ordered: false, received: false,
+            notes: '', sort_order: index + 1,
+        }))
+        setItems((current) => [...current.filter((item) => item.category !== 'Mounting Materials'), ...mountingItems])
+        setMessage(`Imported ${mountingItems.length} mounting material line(s). Existing mounting lines were replaced; save the order to keep this snapshot.`)
+        setImportingMounting(false)
+    }
+
+    async function saveBom() {
+        if (!selectedTemplate && !editingBomId) {
+            setError('Please select a system-size template first.')
+            return
+        }
+
+        if (!clientName.trim()) {
+            setError('Please enter the client name.')
+            return
+        }
+
+        if (items.some((item) => !item.component_name.trim())) {
+            setError('Every item needs a component name. Remove any blank rows.')
+            return
+        }
+
+        setSaving(true)
+        setError('')
+        setMessage('')
+
+        const templateName =
+            selectedTemplate?.name ??
+            savedBoms.find((b) => b.id === editingBomId)?.template_name ??
+            'Saved BOM'
+
+        const systemSize =
+            Number(selectedTemplate?.system_size_kw) ||
+            Number(savedBoms.find((b) => b.id === editingBomId)?.system_size_kw) ||
+            5
+
+        const header = {
+            job_id: jobId || null,
+            template_id: templateId || null,
+            template_name: templateName,
+            system_size_kw: systemSize,
+            client_name: clientName.trim(),
+            address: address.trim() || null,
+            contact_number: contactNumber.trim() || null,
+            inverter: inverter.trim() || null,
+            battery: battery.trim() || null,
+            battery_quantity: Math.max(1, Number(batteryQuantity) || 1),
+            panels: panels.trim() || null,
+            panel_quantity: panelQuantity === '' ? null : Number(panelQuantity),
+            pv_included: pvIncluded,
+            status,
+            notes: notes.trim() || null,
+        }
+
+        let bomId = editingBomId
+
+        if (bomId) {
+            const { error: updateError } = await supabase
+                .from('job_boms')
+                .update(header)
+                .eq('id', bomId)
+
+            if (updateError) {
+                setError(`Could not update BOM: ${updateError.message}`)
+                setSaving(false)
+                return
+            }
+
+            const { error: deleteError } = await supabase
+                .from('job_bom_items')
+                .delete()
+                .eq('job_bom_id', bomId)
+
+            if (deleteError) {
+                setError(`Could not update BOM items: ${deleteError.message}`)
+                setSaving(false)
+                return
+            }
+        } else {
+            const { data, error: insertError } = await supabase
+                .from('job_boms')
+                .insert(header)
+                .select('id')
+                .single()
+
+            if (insertError || !data) {
+                setError(
+                    `Could not save BOM: ${insertError?.message ?? 'No ID returned'}`
+                )
+                setSaving(false)
+                return
+            }
+
+            bomId = data.id
+            setEditingBomId(bomId)
+        }
+
+        const visibleItems = items.filter(
+            (item) => pvIncluded || !item.exclude_if_no_pv
         )
-      } else {
-        setSavedBoms((bomData ?? []) as SavedBom[])
-      }
 
-      setLoading(false)
-    }
+        const snapshotRows = visibleItems.map((item, index) => ({
+            job_bom_id: bomId!,
+            category: item.category,
+            component_name: item.component_name.trim(),
+            description: item.description,
+            quantity: item.quantity,
+            unit: item.unit,
+            exclude_if_no_pv: item.exclude_if_no_pv,
+            ordered: item.ordered,
+            received: item.received,
+            notes: item.notes.trim() || null,
+            sort_order: index + 1,
+        }))
 
-    void loadInitialData()
-  }, [supabase])
+        if (snapshotRows.length > 0) {
+            const { error: itemsInsertError } = await supabase
+                .from('job_bom_items')
+                .insert(snapshotRows)
 
-  useEffect(() => {
-    async function loadTemplateItems() {
-      if (!templateId || editingBomId) return
+            if (itemsInsertError) {
+                setError(
+                    `BOM header saved, but items failed to save: ${itemsInsertError.message}`
+                )
+                setSaving(false)
+                return
+            }
+        }
 
-      const { data, error } = await supabase
-        .from('system_bom_template_items')
-        .select(
-          'id, category, component_name, description, quantity, unit, exclude_if_no_pv, sort_order'
-        )
-        .eq('template_id', templateId)
-        .eq('active', true)
-        .order('sort_order')
-
-      if (error) {
-        setError(`Could not load template items: ${error.message}`)
-        return
-      }
-
-      const rows = (data ?? []) as TemplateItem[]
-      setTemplateItems(rows)
-      const templateRows: BomItem[] = rows.map((item) => ({
-        category: item.category,
-        component_name: item.component_name,
-        description: item.description,
-        quantity: item.quantity === null ? null : Number(item.quantity),
-        unit: item.unit,
-        exclude_if_no_pv: item.exclude_if_no_pv,
-        ordered: false,
-        received: false,
-        notes: '',
-        sort_order: item.sort_order + 3,
-      }))
-      const majorRows: BomItem[] = [
-        { category: 'Major Components', component_name: 'Inverter', description: inverter.trim() || null, quantity: 1, unit: 'unit', exclude_if_no_pv: false, ordered: false, received: false, notes: '', sort_order: 1 },
-        { category: 'Major Components', component_name: 'Batteries', description: battery.trim() || null, quantity: Math.max(1, Number(batteryQuantity) || 1), unit: 'units', exclude_if_no_pv: false, ordered: false, received: false, notes: '', sort_order: 2 },
-        { category: 'Major Components', component_name: 'Solar panels', description: panels.trim() || null, quantity: panelQuantity === '' ? null : Number(panelQuantity), unit: 'panels', exclude_if_no_pv: true, ordered: false, received: false, notes: '', sort_order: 3 },
-      ]
-      setItems((current) => {
-        const previousMajor = new Map(
-          current
-            .filter((item) => item.category === 'Major Components')
-            .map((item) => [item.component_name, item])
-        )
-        const preservedMajorRows = majorRows.map((item) => {
-          const previous = previousMajor.get(item.component_name)
-          return previous
-            ? { ...item, ordered: previous.ordered, received: previous.received, notes: previous.notes }
-            : item
-        })
-        const existingMountingRows = current.filter(
-          (item) => item.category === 'Mounting Materials'
-        )
-        return [...preservedMajorRows, ...templateRows, ...existingMountingRows]
-      })
-      setStatus('draft')
-      setMessage('')
-      setError('')
-    }
-
-    void loadTemplateItems()
-  }, [templateId, supabase, editingBomId])
-
-  function updateMajorComponent(componentName: string, patch: Partial<BomItem>) {
-    setItems((current) => current.map((item) =>
-      item.category === 'Major Components' && item.component_name === componentName
-        ? { ...item, ...patch }
-        : item
-    ))
-  }
-
-  function updateItem(index: number, patch: Partial<BomItem>) {
-    setItems((current) =>
-      current.map((item, i) => (i === index ? { ...item, ...patch } : item))
-    )
-  }
-
-  function addItem() {
-    setItems((current) => [
-      ...current,
-      {
-        category: 'Additional Items',
-        component_name: '',
-        description: null,
-        quantity: null,
-        unit: null,
-        exclude_if_no_pv: false,
-        ordered: false,
-        received: false,
-        notes: '',
-        sort_order: current.length + 1,
-      },
-    ])
-  }
-
-  function removeItem(index: number) {
-    setItems((current) => current.filter((_, i) => i !== index))
-  }
-
-  function resetForm() {
-    setSelectedDesignId('')
-    setEditingBomId(null)
-    setSelectedSavedId('')
-    setJobId('')
-    setClientName('')
-    setAddress('')
-    setContactNumber('')
-    setInverter('')
-    setBattery('')
-    setBatteryQuantity(1)
-    setPanels('')
-    setPanelQuantity('')
-    setPvIncluded(true)
-    setNotes('')
-    setStatus('draft')
-    setMessage('')
-    setError('')
-    router.refresh()
-  }
-
-  async function loadSavedBom(id: string) {
-    if (!id) return
-    setError('')
-    setMessage('')
-    setLoading(true)
-
-    const { data: bom, error: bomError } = await supabase
-      .from('job_boms')
-      .select('*')
-      .eq('id', id)
-      .single()
-
-    if (bomError || !bom) {
-      setError(`Could not open BOM: ${bomError?.message ?? 'Not found'}`)
-      setLoading(false)
-      return
-    }
-
-    const { data: rows, error: itemsError } = await supabase
-      .from('job_bom_items')
-      .select('*')
-      .eq('job_bom_id', id)
-      .order('sort_order')
-
-    if (itemsError) {
-      setError(`Could not load saved items: ${itemsError.message}`)
-      setLoading(false)
-      return
-    }
-
-    setEditingBomId(id)
-    setSelectedSavedId(id)
-    setJobId(bom.job_id ?? '')
-    setClientName(bom.client_name ?? '')
-    setAddress(bom.address ?? '')
-    setContactNumber(bom.contact_number ?? '')
-    setInverter(bom.inverter ?? '')
-    setBattery(bom.battery ?? '')
-    setBatteryQuantity(Number(bom.battery_quantity ?? 1))
-    setPanels(bom.panels ?? '')
-    setPanelQuantity(
-      bom.panel_quantity === null ? '' : Number(bom.panel_quantity)
-    )
-    setPvIncluded(Boolean(bom.pv_included))
-    setNotes(bom.notes ?? '')
-    setStatus(bom.status ?? 'draft')
-
-    setItems(
-      (rows ?? []).map((row) => ({
-        id: row.id,
-        category: row.category,
-        component_name: row.component_name,
-        description: row.description,
-        quantity: row.quantity === null ? null : Number(row.quantity),
-        unit: row.unit,
-        exclude_if_no_pv: Boolean(row.exclude_if_no_pv),
-        ordered: Boolean(row.ordered),
-        received: Boolean(row.received),
-        notes: row.notes ?? '',
-        sort_order: Number(row.sort_order ?? 0),
-      }))
-    )
-
-    setTemplateId(bom.template_id ?? '')
-    setLoading(false)
-  }
-
-  async function importMountingBom() {
-    if (!selectedDesignId) {
-      setError('Select a saved System Designer design first.')
-      return
-    }
-    setImportingMounting(true)
-    setError('')
-    setMessage('')
-    const { data, error: mountingError } = await supabase
-      .from('system_design_bom')
-      .select('component_name, description, quantity, unit')
-      .eq('system_design_id', selectedDesignId)
-      .order('component_name')
-    if (mountingError) {
-      setError(`Could not load the design mounting BOM: ${mountingError.message}`)
-      setImportingMounting(false)
-      return
-    }
-    if (!data || data.length === 0) {
-      setError('This design has no saved mounting BOM. Check that its roof sections have panels and mounting templates assigned, then save the design again.')
-      setImportingMounting(false)
-      return
-    }
-    const grouped = new Map<string, { component_name: string; description: string | null; quantity: number; unit: string | null }>()
-    for (const row of data) {
-      const name = String(row.component_name ?? '').trim()
-      const description = row.description ? String(row.description) : null
-      const unit = row.unit ? String(row.unit) : null
-      const key = [name, description ?? '', unit ?? ''].join('|')
-      const existing = grouped.get(key)
-      if (existing) existing.quantity += Number(row.quantity ?? 0)
-      else grouped.set(key, { component_name: name, description, quantity: Number(row.quantity ?? 0), unit })
-    }
-    const mountingItems: BomItem[] = Array.from(grouped.values()).map((row, index) => ({
-      category: 'Mounting Materials', component_name: row.component_name, description: row.description,
-      quantity: row.quantity, unit: row.unit, exclude_if_no_pv: false, ordered: false, received: false,
-      notes: '', sort_order: index + 1,
-    }))
-    setItems((current) => [...current.filter((item) => item.category !== 'Mounting Materials'), ...mountingItems])
-    setMessage(`Imported ${mountingItems.length} mounting material line(s). Existing mounting lines were replaced; save the order to keep this snapshot.`)
-    setImportingMounting(false)
-  }
-
-  async function saveBom() {
-    if (!selectedTemplate && !editingBomId) {
-      setError('Please select a system-size template first.')
-      return
-    }
-
-    if (!clientName.trim()) {
-      setError('Please enter the client name.')
-      return
-    }
-
-    if (items.some((item) => !item.component_name.trim())) {
-      setError('Every item needs a component name. Remove any blank rows.')
-      return
-    }
-
-    setSaving(true)
-    setError('')
-    setMessage('')
-
-    const templateName =
-      selectedTemplate?.name ??
-      savedBoms.find((b) => b.id === editingBomId)?.template_name ??
-      'Saved BOM'
-
-    const systemSize =
-      Number(selectedTemplate?.system_size_kw) ||
-      Number(savedBoms.find((b) => b.id === editingBomId)?.system_size_kw) ||
-      5
-
-    const header = {
-      job_id: jobId || null,
-      template_id: templateId || null,
-      template_name: templateName,
-      system_size_kw: systemSize,
-      client_name: clientName.trim(),
-      address: address.trim() || null,
-      contact_number: contactNumber.trim() || null,
-      inverter: inverter.trim() || null,
-      battery: battery.trim() || null,
-      battery_quantity: Math.max(1, Number(batteryQuantity) || 1),
-      panels: panels.trim() || null,
-      panel_quantity: panelQuantity === '' ? null : Number(panelQuantity),
-      pv_included: pvIncluded,
-      status,
-      notes: notes.trim() || null,
-    }
-
-    let bomId = editingBomId
-
-    if (bomId) {
-      const { error: updateError } = await supabase
-        .from('job_boms')
-        .update(header)
-        .eq('id', bomId)
-
-      if (updateError) {
-        setError(`Could not update BOM: ${updateError.message}`)
+        await loadSavedBoms()
+        setSelectedSavedId(bomId!)
+        setMessage('BOM saved successfully. Inventory has not been changed.')
         setSaving(false)
-        return
-      }
+    }
 
-      const { error: deleteError } = await supabase
-        .from('job_bom_items')
-        .delete()
-        .eq('job_bom_id', bomId)
+    async function updateOrderStatus(nextStatus: string) {
+        if (!editingBomId) {
+            setStatus(nextStatus)
+            return
+        }
 
-      if (deleteError) {
-        setError(`Could not update BOM items: ${deleteError.message}`)
-        setSaving(false)
-        return
-      }
-    } else {
-      const { data, error: insertError } = await supabase
-        .from('job_boms')
-        .insert(header)
-        .select('id')
-        .single()
+        setStatus(nextStatus)
 
-      if (insertError || !data) {
-        setError(
-          `Could not save BOM: ${insertError?.message ?? 'No ID returned'}`
-        )
-        setSaving(false)
-        return
-      }
+        const { error } = await supabase
+            .from('job_boms')
+            .update({ status: nextStatus })
+            .eq('id', editingBomId)
 
-      bomId = data.id
-      setEditingBomId(bomId)
+        if (error) {
+            setError(`Could not update status: ${error.message}`)
+            return
+        }
+
+        setMessage('Order status updated.')
+        await loadSavedBoms()
     }
 
     const visibleItems = items.filter(
-      (item) => pvIncluded || !item.exclude_if_no_pv
+        (item) => pvIncluded || !item.exclude_if_no_pv
     )
 
-    const snapshotRows = visibleItems.map((item, index) => ({
-      job_bom_id: bomId!,
-      category: item.category,
-      component_name: item.component_name.trim(),
-      description: item.description,
-      quantity: item.quantity,
-      unit: item.unit,
-      exclude_if_no_pv: item.exclude_if_no_pv,
-      ordered: item.ordered,
-      received: item.received,
-      notes: item.notes.trim() || null,
-      sort_order: index + 1,
-    }))
+    const groupedItems = categories
+        .map((category) => ({
+            category,
+            items: visibleItems
+                .map((item, index) => ({ item, index }))
+                .filter(({ item }) => item.category === category),
+        }))
+        .filter((group) => group.items.length > 0)
 
-    if (snapshotRows.length > 0) {
-      const { error: itemsInsertError } = await supabase
-        .from('job_bom_items')
-        .insert(snapshotRows)
-
-      if (itemsInsertError) {
-        setError(
-          `BOM header saved, but items failed to save: ${itemsInsertError.message}`
-        )
-        setSaving(false)
-        return
-      }
+    if (loading) {
+        return <div className="p-6 text-sm text-gray-600">Loading BOM Orders…</div>
     }
 
-    await loadSavedBoms()
-    setSelectedSavedId(bomId!)
-    setMessage('BOM saved successfully. Inventory has not been changed.')
-    setSaving(false)
-  }
-
-  async function updateOrderStatus(nextStatus: string) {
-    if (!editingBomId) {
-      setStatus(nextStatus)
-      return
-    }
-
-    setStatus(nextStatus)
-
-    const { error } = await supabase
-      .from('job_boms')
-      .update({ status: nextStatus })
-      .eq('id', editingBomId)
-
-    if (error) {
-      setError(`Could not update status: ${error.message}`)
-      return
-    }
-
-    setMessage('Order status updated.')
-    await loadSavedBoms()
-  }
-
-  const visibleItems = items.filter(
-    (item) => pvIncluded || !item.exclude_if_no_pv
-  )
-
-  const groupedItems = categories
-    .map((category) => ({
-      category,
-      items: visibleItems
-        .map((item, index) => ({ item, index }))
-        .filter(({ item }) => item.category === category),
-    }))
-    .filter((group) => group.items.length > 0)
-
-  if (loading) {
-    return <div className="p-6 text-sm text-gray-600">Loading BOM Orders…</div>
-  }
-
-  return (
-    <main className="mx-auto max-w-7xl space-y-6 p-4 text-gray-900 md:p-8">
-      <style jsx global>{`
+    return (
+        <main className="mx-auto max-w-7xl space-y-6 p-4 text-gray-900 md:p-8">
+            <style jsx global>{`
         @page {
           size: A4 portrait;
           margin: 10mm;
@@ -811,527 +811,503 @@ export default function BomOrdersPage() {
         }
       `}</style>
 
-      <div className="no-print flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">BOM Orders</h1>
-          <p className="mt-1 text-sm text-gray-600">
-            Prepare, save, track and print job-specific material orders.
-          </p>
-        </div>
+            <div className="no-print flex flex-wrap items-start justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold">BOM Orders</h1>
+                    <p className="mt-1 text-sm text-gray-600">
+                        Prepare, save, track and print job-specific material orders.
+                    </p>
+                </div>
 
-        <div className="flex flex-wrap gap-2">
-          <button className={buttonClass} onClick={resetForm}>
-            New BOM
-          </button>
+                <div className="flex flex-wrap gap-2">
+                    <button className={buttonClass} onClick={resetForm}>
+                        New BOM
+                    </button>
 
-          <button className={buttonClass} onClick={() => window.print()}>
-            Print ordering sheet
-          </button>
+                    <button className={buttonClass} onClick={() => window.print()}>
+                        Print ordering sheet
+                    </button>
 
-          <button
-            className="rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 disabled:opacity-50"
-            onClick={saveBom}
-            disabled={saving}
-          >
-            {saving ? 'Saving…' : editingBomId ? 'Update BOM' : 'Save BOM'}
-          </button>
-        </div>
-      </div>
-
-      {error && (
-        <div className="whitespace-pre-line rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
-      {message && (
-        <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-800">
-          {message}
-        </div>
-      )}
-
-      <section className="no-print rounded-xl border border-gray-200 bg-white p-4 md:p-6">
-        <h2 className="mb-4 text-lg font-semibold">Open a saved BOM</h2>
-
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <select
-            className={inputClass}
-            value={selectedSavedId}
-            onChange={(e) => {
-              setSelectedSavedId(e.target.value)
-              if (e.target.value) void loadSavedBom(e.target.value)
-            }}
-          >
-            <option value="">Select a saved BOM…</option>
-            {savedBoms.map((bom) => (
-              <option key={bom.id} value={bom.id}>
-                {bom.client_name || 'Unnamed client'} — {bom.template_name} —{' '}
-                {new Date(bom.created_at).toLocaleDateString()}
-              </option>
-            ))}
-          </select>
-
-          <button
-            className={buttonClass}
-            disabled={!selectedSavedId}
-            onClick={() => void loadSavedBom(selectedSavedId)}
-          >
-            Open BOM
-          </button>
-        </div>
-      </section>
-
-      <section className="no-print rounded-xl border border-gray-200 bg-white p-4 md:p-6">
-        <h2 className="mb-4 text-lg font-semibold">System and client details</h2>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <label className="text-sm font-medium">
-            System-size template
-            <select
-              className={inputClass}
-              value={templateId}
-              onChange={(e) => {
-                setEditingBomId(null)
-                setSelectedSavedId('')
-                setTemplateId(e.target.value)
-              }}
-              disabled={Boolean(editingBomId)}
-            >
-              <option value="">Choose a template…</option>
-              {templates.map((template) => (
-                <option key={template.id} value={template.id}>
-                  {template.name} ({template.system_size_kw} kW)
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="text-sm font-medium">
-            Link to existing job (optional)
-            <select
-              className={inputClass}
-              value={jobId}
-              onChange={(e) => setJobId(e.target.value)}
-            >
-              <option value="">Standalone BOM / link later</option>
-              {jobs.map((job) => (
-                <option key={job.id} value={job.id}>
-                  {job.job_number} — {job.title}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">
-              Import mounting BOM from System Designer
-              <select
-                className={inputClass}
-                value={selectedDesignId}
-                onChange={(e) => {
-                  const id = e.target.value
-                  setSelectedDesignId(id)
-                  const design = systemDesigns.find((entry) => entry.id === id)
-                  if (!design) return
-                  if (design.job_id) setJobId(design.job_id)
-                  if (design.inverter_model) {
-                    setInverter(design.inverter_model)
-                    updateMajorComponent('Inverter', { description: design.inverter_model })
-                  }
-                  if (design.battery_model) {
-                    const batteryLabel = design.battery_capacity_kwh
-                      ? `${design.battery_model} — ${design.battery_capacity_kwh} kWh`
-                      : design.battery_model
-                    setBattery(batteryLabel)
-                    updateMajorComponent('Batteries', { description: batteryLabel })
-                  }
-                  if (design.panel_model || design.panel_wattage_w) {
-                    const panelLabel = [design.panel_model, design.panel_wattage_w ? `${design.panel_wattage_w} W` : ''].filter(Boolean).join(' — ')
-                    setPanels(panelLabel)
-                    updateMajorComponent('Solar panels', { description: panelLabel })
-                  }
-                  if (design.panel_quantity !== null) {
-                    setPanelQuantity(Number(design.panel_quantity))
-                    updateMajorComponent('Solar panels', { quantity: Number(design.panel_quantity) })
-                  }
-                  setPvIncluded(true)
-                }}
-              >
-                <option value="">Choose a saved system design…</option>
-                {systemDesigns.map((design) => (
-                  <option key={design.id} value={design.id}>
-                    {(design.design_name || 'Unnamed design') + ` — ${design.panel_quantity ?? 0} panels${design.total_pv_kw ? ` / ${design.total_pv_kw} kWp` : ''}`}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button type="button" className={buttonClass} onClick={() => void importMountingBom()} disabled={!selectedDesignId || importingMounting || loading}>
-              {importingMounting ? 'Importing mounting BOM…' : 'Import / replace mounting materials'}
-            </button>
-            <p className="text-xs text-gray-500">Imports saved quantities from System Designer. Re-importing replaces only the Mounting Materials section.</p>
-          </div>
-
-          <label className="text-sm font-medium">
-            Client name *
-            <input
-              className={inputClass}
-              value={clientName}
-              onChange={(e) => setClientName(e.target.value)}
-              placeholder="Client or company name"
-            />
-          </label>
-
-          <label className="text-sm font-medium">
-            Contact number
-            <input
-              className={inputClass}
-              value={contactNumber}
-              onChange={(e) => setContactNumber(e.target.value)}
-              placeholder="Client phone number"
-            />
-          </label>
-
-          <label className="text-sm font-medium md:col-span-2">
-            Installation address
-            <textarea
-              className={inputClass}
-              rows={2}
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="Full installation address"
-            />
-          </label>
-
-          <label className="text-sm font-medium">
-            Inverter
-            <input
-              className={inputClass}
-              value={inverter}
-              onChange={(e) => {
-                const value = e.target.value
-                setInverter(value)
-                updateMajorComponent('Inverter', { description: value.trim() || null })
-              }}
-              placeholder="Make, model and size"
-            />
-          </label>
-
-          <label className="text-sm font-medium">
-            Battery make / model
-            <input
-              className={inputClass}
-              value={battery}
-              onChange={(e) => {
-                const value = e.target.value
-                setBattery(value)
-                updateMajorComponent('Batteries', { description: value.trim() || null })
-              }}
-              placeholder="Battery model"
-            />
-          </label>
-
-          <label className="text-sm font-medium">
-            Number of batteries
-            <input
-              className={inputClass}
-              type="number"
-              min={1}
-              value={batteryQuantity}
-              onChange={(e) => {
-                const quantity = Math.max(1, Number(e.target.value) || 1)
-                setBatteryQuantity(quantity)
-                updateMajorComponent('Batteries', { quantity })
-              }}
-            />
-          </label>
-
-          <label className="text-sm font-medium">
-            Panels / model
-            <input
-              className={inputClass}
-              value={panels}
-              onChange={(e) => {
-                const value = e.target.value
-                setPanels(value)
-                updateMajorComponent('Solar panels', { description: value.trim() || null })
-              }}
-              placeholder="Panel make, model or wattage"
-            />
-          </label>
-
-          <label className="text-sm font-medium">
-            Number of panels
-            <input
-              className={inputClass}
-              type="number"
-              min={0}
-              value={panelQuantity}
-              onChange={(e) => {
-                const value = e.target.value
-                setPanelQuantity(
-                  value === '' ? '' : Math.max(0, Number(value))
-                )
-                updateMajorComponent('Solar panels', {
-                  quantity: value === '' ? null : Math.max(0, Number(value)),
-                })
-              }}
-              placeholder="Enter quantity"
-            />
-          </label>
-
-          <label className="flex items-center gap-3 rounded-lg border border-gray-200 p-3 text-sm font-medium">
-            <input
-              type="checkbox"
-              checked={pvIncluded}
-              onChange={(e) => setPvIncluded(e.target.checked)}
-              className="h-4 w-4"
-            />
-            PV panels and solar combiner included
-          </label>
-
-          <label className="text-sm font-medium">
-            Order status
-            <select
-              className={inputClass}
-              value={status}
-              onChange={(e) => void updateOrderStatus(e.target.value)}
-            >
-              <option value="draft">Draft</option>
-              <option value="ready_to_order">Ready to order</option>
-              <option value="ordered">Ordered</option>
-              <option value="received">Received</option>
-            </select>
-          </label>
-
-          <label className="text-sm font-medium md:col-span-2">
-            General notes
-            <textarea
-              className={inputClass}
-              rows={3}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Delivery instructions, supplier details or job notes"
-            />
-          </label>
-        </div>
-
-        {editingBomId && (
-          <p className="mt-4 text-xs text-amber-700">
-            You are editing a saved BOM snapshot. Updating it replaces its saved
-            item list with the current list.
-          </p>
-        )}
-      </section>
-
-      <section className="rounded-xl border border-gray-200 bg-white p-4 md:p-6">
-        <div className="no-print mb-5 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold">Components and quantities</h2>
-            <p className="mt-1 text-sm text-gray-600">
-              {visibleItems.length} lines shown. Edit quantities for this order;
-              the template itself is not changed.
-            </p>
-          </div>
-
-          <button className={buttonClass} onClick={addItem}>
-            + Add item
-          </button>
-        </div>
-
-        <div id="bom-print-area">
-          <div className="mb-5">
-            <h1 className="text-2xl font-bold">NEW TECH POWER</h1>
-            <h2 className="mt-1 text-xl font-semibold">Material Ordering Sheet</h2>
-            <p className="mt-1 text-sm">
-              {selectedTemplate?.name ??
-                savedBoms.find((b) => b.id === editingBomId)?.template_name ??
-                'System BOM'}
-            </p>
-
-            <div className="mt-4 grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
-              <p><strong>Client:</strong> {clientName || 'Not entered'}</p>
-              <p><strong>Contact:</strong> {contactNumber || 'Not entered'}</p>
-              <p><strong>Address:</strong> {address || 'Not entered'}</p>
-              <p><strong>Inverter:</strong> {inverter || 'Not entered'}</p>
-              <p><strong>Battery:</strong> {battery || 'Not entered'}</p>
-              <p><strong>Battery quantity:</strong> {batteryQuantity}</p>
-              <p><strong>Panels:</strong> {panels || 'Not entered'}</p>
-              <p>
-                <strong>Panel quantity:</strong>{' '}
-                {panelQuantity === '' ? 'Not entered' : panelQuantity}
-              </p>
-              <p><strong>PV included:</strong> {pvIncluded ? 'Yes' : 'No'}</p>
-              <p><strong>Status:</strong> {status.replaceAll('_', ' ')}</p>
+                    <button
+                        className="rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 disabled:opacity-50"
+                        onClick={saveBom}
+                        disabled={saving}
+                    >
+                        {saving ? 'Saving…' : editingBomId ? 'Update BOM' : 'Save BOM'}
+                    </button>
+                </div>
             </div>
-          </div>
 
-          {groupedItems.map((group) => (
-            <div key={group.category} className="mb-6">
-              <h3 className="mb-2 border-b border-gray-400 pb-1 font-semibold">
-                {group.category}
-              </h3>
+            {error && (
+                <div className="whitespace-pre-line rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                    {error}
+                </div>
+            )}
 
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-sm">
-                  <thead>
-                    <tr className="bg-gray-100">
-                      <th className="border border-gray-300 p-2 text-left">Item</th>
-                      <th className="border border-gray-300 p-2 text-left">Quantity</th>
-                      <th className="border border-gray-300 p-2 text-left">Unit</th>
-                      <th className="border border-gray-300 p-2 text-center">Ordered</th>
-                      <th className="border border-gray-300 p-2 text-center">Received</th>
-                      <th className="border border-gray-300 p-2 text-left">Notes</th>
-                      <th className="no-print border border-gray-300 p-2 text-left">Edit</th>
-                    </tr>
-                  </thead>
+            {message && (
+                <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+                    {message}
+                </div>
+            )}
 
-                  <tbody>
-                    {group.items.map(({ item, index }) => (
-                      <tr key={`${item.id ?? item.component_name}-${index}`}>
-                        <td className="border border-gray-300 p-2">
-                          <input
-                            aria-label="Component name"
-                            className="no-print w-full min-w-36 rounded border border-gray-200 px-2 py-1"
-                            value={item.component_name}
-                            onChange={(e) =>
-                              updateItem(index, { component_name: e.target.value })
-                            }
-                          />
-                          <span className="hidden print:inline">
-                            {item.component_name}
-                          </span>
+            <section className="no-print rounded-xl border border-gray-200 bg-white p-4 md:p-6">
+                <h2 className="mb-4 text-lg font-semibold">Open a saved BOM</h2>
 
-                          {item.description && (
-                            <p className="mt-1 text-xs text-gray-500">
-                              {item.description}
-                            </p>
-                          )}
+                <div className="flex flex-col gap-3 sm:flex-row">
+                    <select
+                        className={inputClass}
+                        value={selectedSavedId}
+                        onChange={(e) => {
+                            setSelectedSavedId(e.target.value)
+                            if (e.target.value) void loadSavedBom(e.target.value)
+                        }}
+                    >
+                        <option value="">Select a saved BOM…</option>
+                        {savedBoms.map((bom) => (
+                            <option key={bom.id} value={bom.id}>
+                                {bom.client_name || 'Unnamed client'} — {bom.template_name} —{' '}
+                                {new Date(bom.created_at).toLocaleDateString()}
+                            </option>
+                        ))}
+                    </select>
 
-                          {item.quantity === null && (
-                            <p className="mt-1 text-xs font-medium">
-                              Quantity required
-                            </p>
-                          )}
-                        </td>
+                    <button
+                        className={buttonClass}
+                        disabled={!selectedSavedId}
+                        onClick={() => void loadSavedBom(selectedSavedId)}
+                    >
+                        Open BOM
+                    </button>
+                </div>
+            </section>
 
-                        <td className="border border-gray-300 p-2">
-                          <input
-                            aria-label="Quantity"
-                            className="no-print w-24 rounded border border-gray-200 px-2 py-1"
+            <section className="no-print rounded-xl border border-gray-200 bg-white p-4 md:p-6">
+                <h2 className="mb-4 text-lg font-semibold">System and client details</h2>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                    <label className="text-sm font-medium">
+                        System-size template
+                        <select
+                            className={inputClass}
+                            value={templateId}
+                            onChange={(e) => {
+                                setEditingBomId(null)
+                                setSelectedSavedId('')
+                                setTemplateId(e.target.value)
+                            }}
+                            disabled={Boolean(editingBomId)}
+                        >
+                            <option value="">Choose a template…</option>
+                            {templates.map((template) => (
+                                <option key={template.id} value={template.id}>
+                                    {template.name} ({template.system_size_kw} kW)
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+
+                    <label className="text-sm font-medium">
+                        Link to existing job (optional)
+                        <select
+                            className={inputClass}
+                            value={jobId}
+                            onChange={(e) => setJobId(e.target.value)}
+                        >
+                            <option value="">Standalone BOM / link later</option>
+                            {jobs.map((job) => (
+                                <option key={job.id} value={job.id}>
+                                    {job.job_number} — {job.title}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+
+                    <div className="space-y-2">
+                        <label className="block text-sm font-medium">
+                            Import mounting BOM from System Designer
+                            <select
+                                className={inputClass}
+                                value={selectedDesignId}
+                                onChange={(e) => {
+                                    const id = e.target.value
+                                    setSelectedDesignId(id)
+                                    const design = systemDesigns.find((entry) => entry.id === id)
+                                    if (!design) return
+                                    if (design.job_id) setJobId(design.job_id)
+                                    if (design.inverter_model) {
+                                        setInverter(design.inverter_model)
+                                        updateMajorComponent('Inverter', { description: design.inverter_model })
+                                    }
+                                    if (design.battery_model) {
+                                        const batteryLabel = design.battery_capacity_kwh
+                                            ? `${design.battery_model} — ${design.battery_capacity_kwh} kWh`
+                                            : design.battery_model
+                                        setBattery(batteryLabel)
+                                        updateMajorComponent('Batteries', { description: batteryLabel })
+                                    }
+                                    if (design.panel_model || design.panel_wattage_w) {
+                                        const panelLabel = [design.panel_model, design.panel_wattage_w ? `${design.panel_wattage_w} W` : ''].filter(Boolean).join(' — ')
+                                        setPanels(panelLabel)
+                                        updateMajorComponent('Solar panels', { description: panelLabel })
+                                    }
+                                    if (design.panel_quantity !== null) {
+                                        setPanelQuantity(Number(design.panel_quantity))
+                                        updateMajorComponent('Solar panels', { quantity: Number(design.panel_quantity) })
+                                    }
+                                    setPvIncluded(true)
+                                }}
+                            >
+                                <option value="">Choose a saved system design…</option>
+                                {systemDesigns.map((design) => (
+                                    <option key={design.id} value={design.id}>
+                                        {(design.design_name || 'Unnamed design') + ` — ${design.panel_quantity ?? 0} panels${design.total_pv_kw ? ` / ${design.total_pv_kw} kWp` : ''}`}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+                        <button type="button" className={buttonClass} onClick={() => void importMountingBom()} disabled={!selectedDesignId || importingMounting || loading}>
+                            {importingMounting ? 'Importing mounting BOM…' : 'Import / replace mounting materials'}
+                        </button>
+                        <p className="text-xs text-gray-500">Imports saved quantities from System Designer. Re-importing replaces only the Mounting Materials section.</p>
+                    </div>
+
+                    <label className="text-sm font-medium">
+                        Client name *
+                        <input
+                            className={inputClass}
+                            value={clientName}
+                            onChange={(e) => setClientName(e.target.value)}
+                            placeholder="Client or company name"
+                        />
+                    </label>
+
+                    <label className="text-sm font-medium">
+                        Contact number
+                        <input
+                            className={inputClass}
+                            value={contactNumber}
+                            onChange={(e) => setContactNumber(e.target.value)}
+                            placeholder="Client phone number"
+                        />
+                    </label>
+
+                    <label className="text-sm font-medium md:col-span-2">
+                        Installation address
+                        <textarea
+                            className={inputClass}
+                            rows={2}
+                            value={address}
+                            onChange={(e) => setAddress(e.target.value)}
+                            placeholder="Full installation address"
+                        />
+                    </label>
+
+                    <label className="text-sm font-medium">
+                        Inverter
+                        <input
+                            className={inputClass}
+                            value={inverter}
+                            onChange={(e) => {
+                                const value = e.target.value
+                                setInverter(value)
+                                updateMajorComponent('Inverter', { description: value.trim() || null })
+                            }}
+                            placeholder="Make, model and size"
+                        />
+                    </label>
+
+                    <label className="text-sm font-medium">
+                        Battery make / model
+                        <input
+                            className={inputClass}
+                            value={battery}
+                            onChange={(e) => {
+                                const value = e.target.value
+                                setBattery(value)
+                                updateMajorComponent('Batteries', { description: value.trim() || null })
+                            }}
+                            placeholder="Battery model"
+                        />
+                    </label>
+
+                    <label className="text-sm font-medium">
+                        Number of batteries
+                        <input
+                            className={inputClass}
+                            type="number"
+                            min={1}
+                            value={batteryQuantity}
+                            onChange={(e) => {
+                                const quantity = Math.max(1, Number(e.target.value) || 1)
+                                setBatteryQuantity(quantity)
+                                updateMajorComponent('Batteries', { quantity })
+                            }}
+                        />
+                    </label>
+
+                    <label className="text-sm font-medium">
+                        Panels / model
+                        <input
+                            className={inputClass}
+                            value={panels}
+                            onChange={(e) => {
+                                const value = e.target.value
+                                setPanels(value)
+                                updateMajorComponent('Solar panels', { description: value.trim() || null })
+                            }}
+                            placeholder="Panel make, model or wattage"
+                        />
+                    </label>
+
+
+                    <label className="text-sm font-medium">
+                        Number of panels
+                        <input
+                            className={inputClass}
                             type="number"
                             min={0}
-                            step="any"
-                            value={item.quantity ?? ''}
-                            placeholder="Required"
-                            onChange={(e) =>
-                              updateItem(index, {
-                                quantity:
-                                  e.target.value === ''
-                                    ? null
-                                    : Math.max(0, Number(e.target.value)),
-                              })
-                            }
-                          />
-                          <span className="hidden print:inline">
-                            {item.quantity === null ? 'Required' : item.quantity}
-                          </span>
-                        </td>
+                            value={panelQuantity}
+                            onChange={(e) => {
+                                const value = e.target.value
+                                setPanelQuantity(
+                                    value === '' ? '' : Math.max(0, Number(value))
+                                )
+                                updateMajorComponent('Solar panels', {
+                                    quantity: value === '' ? null : Math.max(0, Number(value)),
+                                })
+                            }}
+                            placeholder="Enter quantity"
+                        />
+                    </label>
 
-                        <td className="border border-gray-300 p-2">
-                          <input
-                            aria-label="Unit"
-                            className="no-print w-20 rounded border border-gray-200 px-2 py-1"
-                            value={item.unit ?? ''}
-                            onChange={(e) =>
-                              updateItem(index, { unit: e.target.value || null })
-                            }
-                          />
-                          <span className="hidden print:inline">
-                            {item.unit || '—'}
-                          </span>
-                        </td>
-
-                        <td className="border border-gray-300 p-2 text-center">
-                          <input
+                    <label className="flex items-center gap-3 rounded-lg border border-gray-200 p-3 text-sm font-medium">
+                        <input
                             type="checkbox"
-                            aria-label={`Ordered ${item.component_name}`}
-                            checked={item.ordered}
-                            onChange={(e) =>
-                              updateItem(index, { ordered: e.target.checked })
-                            }
-                          />
-                        </td>
+                            checked={pvIncluded}
+                            onChange={(e) => setPvIncluded(e.target.checked)}
+                            className="h-4 w-4"
+                        />
+                        PV panels and solar combiner included
+                    </label>
 
-                        <td className="border border-gray-300 p-2 text-center">
-                          <input
-                            type="checkbox"
-                            aria-label={`Received ${item.component_name}`}
-                            checked={item.received}
-                            onChange={(e) =>
-                              updateItem(index, { received: e.target.checked })
-                            }
-                          />
-                        </td>
 
-                        <td className="border border-gray-300 p-2">
-                          <input
-                            aria-label="Item notes"
-                            className="no-print w-full min-w-28 rounded border border-gray-200 px-2 py-1"
-                            value={item.notes}
-                            onChange={(e) =>
-                              updateItem(index, { notes: e.target.value })
-                            }
-                          />
-                          <span className="hidden print:inline">
-                            {item.notes || '—'}
-                          </span>
-                        </td>
+                    {editingBomId && (
+                        <p className="mt-4 text-xs text-amber-700">
+                            You are editing a saved BOM snapshot. Updating it replaces its saved
+                            item list with the current list.
+                        </p>
+                    )}
+            </section>
 
-                        <td className="no-print border border-gray-300 p-2">
-                          <button
-                            className="text-xs font-medium text-red-700 hover:underline"
-                            onClick={() => removeItem(index)}
-                          >
-                            Remove
-                          </button>
-                        </td>
-                      </tr>
+            <section className="rounded-xl border border-gray-200 bg-white p-4 md:p-6">
+                <div className="no-print mb-5 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h2 className="text-lg font-semibold">Components and quantities</h2>
+                        <p className="mt-1 text-sm text-gray-600">
+                            {visibleItems.length} lines shown. Edit quantities for this order;
+                            the template itself is not changed.
+                        </p>
+                    </div>
+
+                    <button className={buttonClass} onClick={addItem}>
+                        + Add item
+                    </button>
+                </div>
+
+                <div id="bom-print-area">
+                    <div className="mb-5">
+                        <h1 className="text-2xl font-bold">NEW TECH POWER</h1>
+                        <h2 className="mt-1 text-xl font-semibold">Material Ordering Sheet</h2>
+                        <p className="mt-1 text-sm">
+                            {selectedTemplate?.name ??
+                                savedBoms.find((b) => b.id === editingBomId)?.template_name ??
+                                'System BOM'}
+                        </p>
+
+                        <div className="mt-4 grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
+                            <p><strong>Client:</strong> {clientName || 'Not entered'}</p>
+                            <p><strong>Contact:</strong> {contactNumber || 'Not entered'}</p>
+                            <p><strong>Address:</strong> {address || 'Not entered'}</p>
+                            <p><strong>Inverter:</strong> {inverter || 'Not entered'}</p>
+                            <p><strong>Battery:</strong> {battery || 'Not entered'}</p>
+                            <p><strong>Battery quantity:</strong> {batteryQuantity}</p>
+                            <p><strong>Panels:</strong> {panels || 'Not entered'}</p>
+                            <p>
+                                <strong>Panel quantity:</strong>{' '}
+                                {panelQuantity === '' ? 'Not entered' : panelQuantity}
+                            </p>
+                            <p><strong>PV included:</strong> {pvIncluded ? 'Yes' : 'No'}</p>
+                            <p><strong>Status:</strong> {status.replaceAll('_', ' ')}</p>
+                        </div>
+                    </div>
+
+                    {groupedItems.map((group) => (
+                        <div key={group.category} className="mb-6">
+                            <h3 className="mb-2 border-b border-gray-400 pb-1 font-semibold">
+                                {group.category}
+                            </h3>
+
+                            <div className="overflow-x-auto">
+                                <table className="w-full border-collapse text-sm">
+                                    <thead>
+                                        <tr className="bg-gray-100">
+                                            <th className="border border-gray-300 p-2 text-left">Item</th>
+                                            <th className="border border-gray-300 p-2 text-left">Quantity</th>
+                                            <th className="border border-gray-300 p-2 text-left">Unit</th>
+                                            <th className="border border-gray-300 p-2 text-center">Ordered</th>
+                                            <th className="border border-gray-300 p-2 text-center">Received</th>
+                                            <th className="border border-gray-300 p-2 text-left">Notes</th>
+                                            <th className="no-print border border-gray-300 p-2 text-left">Edit</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        {group.items.map(({ item, index }) => (
+                                            <tr key={`${item.id ?? item.component_name}-${index}`}>
+                                                <td className="border border-gray-300 p-2">
+                                                    <input
+                                                        aria-label="Component name"
+                                                        className="no-print w-full min-w-36 rounded border border-gray-200 px-2 py-1"
+                                                        value={item.component_name}
+                                                        onChange={(e) =>
+                                                            updateItem(index, { component_name: e.target.value })
+                                                        }
+                                                    />
+                                                    <span className="hidden print:inline">
+                                                        {item.component_name}
+                                                    </span>
+
+                                                    {item.description && (
+                                                        <p className="mt-1 text-xs text-gray-500">
+                                                            {item.description}
+                                                        </p>
+                                                    )}
+
+                                                    {item.quantity === null && (
+                                                        <p className="mt-1 text-xs font-medium">
+                                                            Quantity required
+                                                        </p>
+                                                    )}
+                                                </td>
+
+                                                <td className="border border-gray-300 p-2">
+                                                    <input
+                                                        aria-label="Quantity"
+                                                        className="no-print w-24 rounded border border-gray-200 px-2 py-1"
+                                                        type="number"
+                                                        min={0}
+                                                        step="any"
+                                                        value={item.quantity ?? ''}
+                                                        placeholder="Required"
+                                                        onChange={(e) =>
+                                                            updateItem(index, {
+                                                                quantity:
+                                                                    e.target.value === ''
+                                                                        ? null
+                                                                        : Math.max(0, Number(e.target.value)),
+                                                            })
+                                                        }
+                                                    />
+                                                    <span className="hidden print:inline">
+                                                        {item.quantity === null ? 'Required' : item.quantity}
+                                                    </span>
+                                                </td>
+
+                                                <td className="border border-gray-300 p-2">
+                                                    <input
+                                                        aria-label="Unit"
+                                                        className="no-print w-20 rounded border border-gray-200 px-2 py-1"
+                                                        value={item.unit ?? ''}
+                                                        onChange={(e) =>
+                                                            updateItem(index, { unit: e.target.value || null })
+                                                        }
+                                                    />
+                                                    <span className="hidden print:inline">
+                                                        {item.unit || '—'}
+                                                    </span>
+                                                </td>
+
+                                                <td className="border border-gray-300 p-2 text-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        aria-label={`Ordered ${item.component_name}`}
+                                                        checked={item.ordered}
+                                                        onChange={(e) =>
+                                                            updateItem(index, { ordered: e.target.checked })
+                                                        }
+                                                    />
+                                                </td>
+
+                                                <td className="border border-gray-300 p-2 text-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        aria-label={`Received ${item.component_name}`}
+                                                        checked={item.received}
+                                                        onChange={(e) =>
+                                                            updateItem(index, { received: e.target.checked })
+                                                        }
+                                                    />
+                                                </td>
+
+                                                <td className="border border-gray-300 p-2">
+                                                    <input
+                                                        aria-label="Item notes"
+                                                        className="no-print w-full min-w-28 rounded border border-gray-200 px-2 py-1"
+                                                        value={item.notes}
+                                                        onChange={(e) =>
+                                                            updateItem(index, { notes: e.target.value })
+                                                        }
+                                                    />
+                                                    <span className="hidden print:inline">
+                                                        {item.notes || '—'}
+                                                    </span>
+                                                </td>
+
+                                                <td className="no-print border border-gray-300 p-2">
+                                                    <button
+                                                        className="text-xs font-medium text-red-700 hover:underline"
+                                                        onClick={() => removeItem(index)}
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+
+                    {notes && (
+                        <div className="mt-6 border-t border-gray-300 pt-3 text-sm">
+                            <strong>General notes:</strong>
+                            <p className="mt-1 whitespace-pre-wrap">{notes}</p>
+                        </div>
+                    )}
+
+                    <div className="mt-8 grid gap-8 text-sm sm:grid-cols-2">
+                        <p>Ordered by: ______________________________</p>
+                        <p>Date: ______________________________</p>
+                        <p>Checked / received by: ______________________________</p>
+                        <p>Completion date: ______________________________</p>
+                    </div>
+                </div>
+            </section>
+
+            <div className="no-print flex flex-wrap justify-end gap-2">
+                <button className={buttonClass} onClick={() => window.print()}>
+                    Print ordering sheet
+                </button>
+
+                <button
+                    className="rounded-lg bg-black px-5 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                    onClick={saveBom}
+                    disabled={saving}
+                >
+                    {saving ? 'Saving…' : editingBomId ? 'Update BOM' : 'Save BOM'}
+                </button>
             </div>
-          ))}
-
-          {notes && (
-            <div className="mt-6 border-t border-gray-300 pt-3 text-sm">
-              <strong>General notes:</strong>
-              <p className="mt-1 whitespace-pre-wrap">{notes}</p>
-            </div>
-          )}
-
-          <div className="mt-8 grid gap-8 text-sm sm:grid-cols-2">
-            <p>Ordered by: ______________________________</p>
-            <p>Date: ______________________________</p>
-            <p>Checked / received by: ______________________________</p>
-            <p>Completion date: ______________________________</p>
-          </div>
-        </div>
-      </section>
-
-      <div className="no-print flex flex-wrap justify-end gap-2">
-        <button className={buttonClass} onClick={() => window.print()}>
-          Print ordering sheet
-        </button>
-
-        <button
-          className="rounded-lg bg-black px-5 py-2 text-sm font-semibold text-white disabled:opacity-50"
-          onClick={saveBom}
-          disabled={saving}
-        >
-          {saving ? 'Saving…' : editingBomId ? 'Update BOM' : 'Save BOM'}
-        </button>
-      </div>
-    </main>
-  )
+        </main>
+    )
 }
